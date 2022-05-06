@@ -60,15 +60,50 @@ export default {
       }
     },
     methods:{
+
       EleInit(){
         //初始化按钮群
         for(let i=0;i<20;++i){
           this.buttons_floor.push(false);
         }
       },
+
+      //开门
+      DoorOpen(time){
+        if(cur_moving){
+          console.log("有bug！运行的时候怎么能开门呢？");
+          return;
+        }
+        if(this.cur_door){
+          return;//防止重复设定定时器
+        }
+        this.cur_door = true;
+        //两秒后关门
+        setTimeout(() => {
+          this.DoorClose();
+        }, time);
+      },
+      //关门
+      DoorClose(){
+        if(cur_moving){
+          console.log("有bug！运行的时候怎么能关门呢？");
+          return;
+        }
+        if(!this.cur_door){
+          return;//防止重复设定定时器
+        }
+        this.cur_door=false;
+        this.cur_moving=true;
+      },
       //当电梯内有人按下楼层时调用
       FloorClick(i){
         console.log(i+"被按下！")
+        //在当前楼层停止时按下当前楼层按钮会开门
+        if(i==this.cur_floor&&this.cur_moving==false){
+          console.log("已在当前楼层停止");
+          this.DoorOpen(2000);//2秒后关门
+        return;
+        }
         //判断是否在任务队列中
         if(this.mission_floor.indexOf(i)!=-1){
           console.log("当前楼层已经在任务队列中了！");
@@ -76,8 +111,58 @@ export default {
         }
         this.mission_floor.push(i);
         this.buttons_floor[i-1] = true;//表示为按钮已按下
+      },
+
+      //间隔1.5秒执行一次，以此来模拟电梯上下行
+      UpdateStatus(){
+        console.log("更新电梯状态");
+        if(this.cur_door){
+          //若门在开启状态
+          return;
+        }
+        //若任务队列为空，则置为静止状态
+        if(this.mission_floor.length==0){
+          if(this.cur_direction!=0){
+            this.cur_direction=0;
+          }
+          if(this.cur_moving!=false){
+            this.cur_moving=false;
+          }
+          return
+        }
+        this.cur_floor=this.cur_floor+this.cur_direction;
+        //若任务队列不空
+        //判断当前楼层是否在队列中——即是否到达目的地
+        var ArriveCheck=this.mission_floor[this.cur_floor];
+        //若不在队列中——未到达目的地
+        if(ArriveCheck==-1){
+          //若当前为静止状态
+          if(this.cur_direction==0){
+            let UorD = this.mission_floor.shift()-this.cur_floor;//取第一个任务与当前楼层做差,不可能为0
+            if(UorD>0){
+              this.cur_direction=1;
+            }
+            else{
+              this.cur_direction=-1;
+            }
+          }
+        }
+          //若当前不为静止状态——说明此时方向一定正确且未到达
+        //若在队列中——已经到达目的地
+        else{
+          //在到达后执行的函数中执行到达后相应的操作，包括任务选取
+
+          //在此将楼层从任务队列中取出来
+
+          cur_moving=false;//先停下来才能开门
+          this.DoorOpen(2000);
+        
+          //选择下一个任务——主要是为了确定下一步的运行方向
+          
+        }
       }
     },
+
     computed:{
       DoorStatus(){
         if(this.cur_door){
@@ -90,6 +175,7 @@ export default {
     },
     created(){
       this.EleInit();
+      setInterval(this.UpdateStatus,1500);
     }
     
 }
