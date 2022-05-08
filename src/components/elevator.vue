@@ -39,7 +39,7 @@
             type="warning"
             class="MineButton"
             :disabled="this.cur_moving"
-            @click="this.DoorOpen(2000)"
+            @click="this.DoorOpen(5000)"
             plain
           >
             <el-icon><caret-left /></el-icon>
@@ -144,6 +144,8 @@ export default {
 
     //关门
     DoorClose() {
+      this.DirectionNext();//选取下一个方向
+      
       if (this.cur_moving) {
         console.log("有bug！运行的时候怎么能关门呢？");
         return;
@@ -152,7 +154,6 @@ export default {
         return; //防止重复
       }
       this.cur_door = false;
-      console.log();
       if (this.mission_floor.length == 0) {
         this.cur_moving = false;
       } else {
@@ -166,7 +167,7 @@ export default {
       //在当前楼层停止时按下当前楼层按钮会开门
       if (i == this.cur_floor && this.cur_moving == false) {
         console.log("已在当前楼层停止");
-        this.DoorOpen(3000); //2秒后关门
+        this.DoorOpen(5000); //5秒后关门
         return;
       }
       //判断是否在任务队列中
@@ -219,9 +220,29 @@ export default {
         this.mission_floor.splice(ArriveCheck, 1); //在此将楼层从任务队列中取出来
         this.buttons_floor[this.cur_floor - 1] = false;
         this.cur_moving = false; //先停下来才能开门
-        this.DoorOpen(3000);
-        //选择下一个任务——主要是为了确定下一步的运行方向
-        this.DirectionNext();
+        
+        if (!this.mission_floor.length) {
+          //若任务队列已空则静止
+          this.cur_moving = false;
+          this.cur_direction = 0;
+        }
+
+        if(this.cur_direction==0){
+          this.$emit("upArrive",this.cur_floor);
+          this.$emit("downArrive",this.cur_floor);
+        }
+        else if(this.cur_direction==1){
+          //之前方向为向上
+          this.$emit("upArrive",this.cur_floor)
+        }
+        else if(this.cur_direction==-1){
+          //之前方向为向下
+          this.$emit("downArrive",this.cur_floor)
+        }
+
+        this.DoorOpen(5000);
+        //开门5s后关门，选择下一个任务
+        
       }
     },
 
