@@ -32,7 +32,7 @@
 
 ### 项目浏览
 
-+ 联网进入 [elevator (pikachudy.github.io)](https://pikachudy.github.io/)在线浏览
++ 联网进入 [elevator (pikachudy.github.io)](https://pikachudy.github.io/ElevatorScheduling/)在线浏览
 
 + 解压**dist**文件，在根目录下找到 **index.html** ,使用浏览器打开即可本地浏览
 
